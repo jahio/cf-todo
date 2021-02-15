@@ -9,7 +9,7 @@ import (
 	"github.com/jhunt/go-route"
 	"github.com/jhunt/vcaptive"
 	"github.com/rs/cors"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -29,7 +29,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "💥 unable to parse VCAP_SERVICES: %s\n", err)
 			os.Exit(1)
 		}
-		instance, found := services.Tagged("mysql")
+		instance, found := services.Tagged("postgres")
 		if found {
 			hostname, ok := instance.GetString("hostname")
 			if !ok {
@@ -67,14 +67,14 @@ func main() {
 				}
 			}
 
-			dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", username, password, hostname, port, name)
+			dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", hostname, username, password, name, port)
 		}
 	}
 
 	var db *gorm.DB
 	if dsn != "" {
 		var err error
-		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "💥 unable to connect to backend database: %s\n", err)
 			os.Exit(1)
